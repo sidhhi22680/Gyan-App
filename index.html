@@ -2725,6 +2725,32 @@ function dirOpen(){dirClose();try{history.pushState({},'')}catch(e){}
 // ===== मासिक परीक्षा / Monthly Exam =====
 // बदलने के लिए: EX_N = कुल सवाल, EX_MIN = मिनट (12.5 = 12 मिनट 30 सेकंड), EX_NEG = गलत जवाब पर कटौती
 var EX_N=25,EX_MIN=12.5,EX_NEG=0.25,EX={t:null,rev:false};
+// ===== हर महीने का अपना पेपर / Each month's own paper (monthly-papers.js) =====
+// नया पेपर जोड़ने के लिए सिर्फ़ monthly-papers.js बदलें, index.html नहीं। उस महीने का पेपर फ़ाइल में न हो तो पहले की तरह मिले-जुले सवाल बनते हैं।
+// To add a paper, edit only monthly-papers.js. If the month has no paper there, the old mixed-questions exam is used.
+var MEX={st:'idle',def:[EX_N,EX_MIN,EX_NEG]};
+function mexKey(){var d=new Date(),m=d.getMonth()+1;return d.getFullYear()+'-'+(m<10?'0':'')+m}
+function mexLoad(){if(MEX.st!=='idle')return;MEX.st='loading';var s=document.createElement('script');
+ s.src='monthly-papers.js'+(navigator.onLine===false?'':'?t='+Math.floor(Date.now()/3600000));
+ s.onload=function(){MEX.st='ok';mexDone()};s.onerror=function(){MEX.st='fail';mexDone()};
+ setTimeout(function(){if(MEX.st==='loading'){MEX.st='fail';mexDone()}},8000);document.head.appendChild(s)}
+function mexDone(){try{if(/[?&]mexcheck=1/.test(location.search))mexCheck();if(tab==='exam'&&!exGet(exCur()))render()}catch(e){}}
+function mexParse(p){var qs=[],bad=[];if(!p||!Array.isArray(p.questions))return {qs:qs,bad:['questions: [ ... ] नहीं मिला']};
+ p.questions.forEach(function(x,i){var o=x&&x.o,a=x?+x.ans-1:-1,n=i+1;
+  if(!x||!x.q)bad.push('सवाल '+n+': q खाली है');
+  else if(!Array.isArray(o)||o.length<2)bad.push('सवाल '+n+': o में कम से कम 2 विकल्प चाहिए');
+  else if(!(a>=0&&a<o.length&&a%1===0))bad.push('सवाल '+n+': ans '+x.ans+' गलत है (1 से '+o.length+' के बीच होना चाहिए)');
+  else qs.push({c:'monthly',s:x.s?String(x.s):'',q:String(x.q),o:o.map(String),a:a,e:x.e?String(x.e):''})});
+ return {qs:qs,bad:bad}}
+function mexCheck(){var L=window.MONTHLY_EXAMS,t=[];
+ if(!window.MONTHLY_EXAMS_OK||!L)t.push('❌ monthly-papers.js नहीं मिली या उसमें गलती है (कोई , ] } या quote छूटा है)');
+ else Object.keys(L).sort().forEach(function(k){var r=mexParse(L[k]),b=r.bad.slice();if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(k))b.unshift('नाम '+k+' गलत है, YYYY-MM लिखें (जैसे 2026-12)');else if(r.qs.length<5)b.push('कम से कम 5 सही सवाल चाहिए');t.push((b.length?'⚠️ ':'✅ ')+k+': '+r.qs.length+' सवाल ठीक'+(b.length?'\n    '+b.join('\n    '):''))});
+ alert(t.join('\n')||'कोई पेपर नहीं मिला')}
+function exPaper(){var L=window.MONTHLY_EXAMS,p=L&&L[mexKey()];if(!p)return null;
+ if(!p._c){var r=mexParse(p);p._c=r.qs.length>=5?{qs:r.qs,min:+p.minutes>0?+p.minutes:0,neg:(typeof p.negative==='number'&&p.negative>=0)?p.negative:null,title:p.title?String(p.title):''}:{qs:[]}}
+ return p._c.qs.length?p._c:null}
+function exApply(){var c=exPaper();EX_N=c?c.qs.length:MEX.def[0];EX_MIN=c&&c.min?c.min:MEX.def[1];EX_NEG=c&&c.neg!==null?c.neg:MEX.def[2]}
+mexLoad();
 function exMon(d){var h=['जनवरी','फ़रवरी','मार्च','अप्रैल','मई','जून','जुलाई','अगस्त','सितंबर','अक्टूबर','नवंबर','दिसंबर'],e=['January','February','March','April','May','June','July','August','September','October','November','December'];return T(h[d.getMonth()],e[d.getMonth()])+' '+d.getFullYear()}
 function exKey(y,m){return 'gy_exam_'+y+'_'+m}
 function exCur(){var d=new Date();return exKey(d.getFullYear(),d.getMonth()+1)}
@@ -2734,17 +2760,17 @@ function exRand(s){return function(){s|=0;s=s+0x6D2B79F5|0;var t=Math.imul(s^s>>
 function exShuf(a,r){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(r()*(i+1)),x=a[i];a[i]=a[j];a[j]=x}return a}
 function exLab(x,k){if(x.s)return k?pkq(k,x.s):pick(x.s);var c=CATS.filter(function(z){return z[0]===x.c})[0];return c?pick(c[2]):''}
 function exSc(v){return String(Math.round(v*100)/100)}
-function exBuild(){var d=new Date(),r=exRand(d.getFullYear()*100+d.getMonth()+1),g={};
+function exBuild(){var cp=exPaper();if(cp)return cp.qs;var d=new Date(),r=exRand(d.getFullYear()*100+d.getMonth()+1),g={};
  QUESTIONS.forEach(function(q){if(q&&q.q&&Array.isArray(q.o)&&q.o.length>1&&typeof q.a==='number'&&q.o[q.a]!==undefined){(g[q.c]=g[q.c]||[]).push(q)}});
  var pool=Object.keys(g).sort().map(function(k){return exShuf(g[k],r)}),out=[];
  while(out.length<EX_N&&pool.some(function(p){return p.length})){pool.forEach(function(p){if(out.length<EX_N&&p.length)out.push(p.shift())})}
  return exShuf(out,r).map(function(q){return {c:q.c,s:q.s||'',q:q.q,o:q.o,a:q.a,e:q.e||''}})}
 function exDur(h){var t=Math.round(EX_MIN*60),m=Math.floor(t/60),x=t%60;return h?(m+' मिनट'+(x?' '+x+' सेकंड':'')):(m+' min'+(x?' '+x+' sec':''))}
-function exTL(P){return Math.max(0,Math.floor((P.start+EX_MIN*60000-Date.now())/1000))}
+function exTL(P){return Math.max(0,Math.floor((P.start+(P.min||EX_MIN)*60000-Date.now())/1000))}
 function exFmt(s){var m=Math.floor(s/60),x=s%60;return (m<10?'0':'')+m+':'+(x<10?'0':'')+x}
-function exStart(){var qs=exBuild();if(qs.length<5){note(T('अभी पर्याप्त सवाल नहीं हैं','Not enough questions yet'));return}
- exPut(exCur(),{n:qs.length,qs:qs,ans:qs.map(function(){return -1}),i:0,start:Date.now(),done:false});EX.rev=false;window.scrollTo(0,0);render()}
-function exGrade(P){var r=0,w=0,s=0;P.qs.forEach(function(q,i){var a=P.ans[i];if(a<0)s++;else if(a===q.a)r++;else w++});P.right=r;P.wrong=w;P.skip=s;P.score=r-EX_NEG*w;P.done=true;P.end=Math.min(Date.now(),P.start+EX_MIN*60000);exPut(exCur(),P);return P}
+function exStart(){if(MEX.st==='loading'){note(T('पेपर लोड हो रहा है, 2 सेकंड बाद फिर दबाएँ','Loading the paper, please tap again in 2 seconds'));return}var qs=exBuild();if(qs.length<5){note(T('अभी पर्याप्त सवाल नहीं हैं','Not enough questions yet'));return}
+ var cp=exPaper();exPut(exCur(),{n:qs.length,qs:qs,ans:qs.map(function(){return -1}),i:0,start:Date.now(),done:false,min:cp&&cp.min||undefined,neg:cp&&cp.neg!==null?cp.neg:undefined});EX.rev=false;window.scrollTo(0,0);render()}
+function exGrade(P){var r=0,w=0,s=0;P.qs.forEach(function(q,i){var a=P.ans[i];if(a<0)s++;else if(a===q.a)r++;else w++});P.right=r;P.wrong=w;P.skip=s;P.score=r-(P.neg!==undefined?P.neg:EX_NEG)*w;P.done=true;P.end=Math.min(Date.now(),P.start+(P.min||EX_MIN)*60000);exPut(exCur(),P);return P}
 function exFinish(){var P=exGet(exCur());if(!P||P.done)return;exGrade(P);EX.rev=false;window.scrollTo(0,0);render()}
 function exAns(k){var P=exGet(exCur());if(!P||P.done)return;if(exTL(P)<=0){exFinish();return}P.ans[P.i]=(P.ans[P.i]===k?-1:k);exPut(exCur(),P);var y=window.scrollY;render();window.scrollTo(0,y)}
 function exGo(n){var P=exGet(exCur());if(!P||P.done)return;P.i=Math.max(0,Math.min(P.n-1,n));exPut(exCur(),P);window.scrollTo(0,0);render()}
@@ -2785,11 +2811,11 @@ function rankHTML(){var h='<button class="btn ghost" style="margin:6px 0" onclic
  else h+='<p class="muted">'+T('बोर्ड पर नाम दिखाने के लिए लॉगिन करें।','Log in to appear on the board.')+'</p>';
  setTimeout(rkFresh,30);return h+'</div>'}
 function exView(){var p=exGet(exCur());return((p&&!p.done)?'':rankHTML())+exView0()}
-function exView0(){var d=new Date(),P=exGet(exCur()),h='';
+function exView0(){var d=new Date(),P=exGet(exCur()),h='';if(!P)exApply();
  if(P&&!P.done&&exTL(P)<=0)P=exGrade(P);
  if(!P){
-  h='<h2>🏆 '+T('मासिक परीक्षा','Monthly Exam')+' · '+exMon(d)+'</h2><div class="card"><b>'+T('नियम','Rules')+'</b><ul>'
-   +'<li>'+T('सभी विषयों से मिले-जुले '+EX_N+' सवाल','Mixed '+EX_N+' questions from all subjects')+'</li>'
+  h='<h2>🏆 '+T('मासिक परीक्षा','Monthly Exam')+' · '+exMon(d)+'</h2>'+(exPaper()&&exPaper().title?'<p class="muted" style="margin:0 2px 6px">'+pick(exPaper().title)+'</p>':'')+'<div class="card"><b>'+T('नियम','Rules')+'</b><ul>'
+   +'<li>'+(exPaper()?T(EX_N+' सवाल',EX_N+' questions'):T('सभी विषयों से मिले-जुले '+EX_N+' सवाल','Mixed '+EX_N+' questions from all subjects'))+'</li>'
    +'<li>'+T('समय: '+exDur(1)+'। शुरू होने के बाद रुकता नहीं, ऐप बंद करने पर भी चलता रहेगा','Time: '+exDur(0)+'. Once started it does not pause, even if you close the app')+'</li>'
    +'<li>'+T('सही +1, गलत −'+EX_NEG+', छोड़ने पर 0','Correct +1, wrong −'+EX_NEG+', skipped 0')+'</li>'
    +'<li>'+T('इस महीने सबका पेपर एक ही है। स्कोर सिर्फ़ एक बार दर्ज होगा','Everyone gets the same paper this month. Your score is recorded once')+'</li>'
