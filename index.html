@@ -1232,13 +1232,12 @@ function vcPost(b){var fr=new FileReader();fr.onload=function(){var d=String(fr.
 
 var VISION_KEY=''; /* Google Cloud Vision API key: photo SafeSearch check. Khali ho to photo bhejna band rahega / empty = photo sending stays off */
 function lvl(s){return['UNKNOWN','VERY_UNLIKELY','UNLIKELY','POSSIBLE','LIKELY','VERY_LIKELY'].indexOf(s)}
-function pcSafe(b64){if(!VISION_KEY)return Promise.reject('nokey');return fetch('https://vision.googleapis.com/v1/images:annotate?key='+encodeURIComponent(VISION_KEY),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({requests:[{image:{content:b64},features:[{type:'SAFE_SEARCH_DETECTION'}]}]})}).then(function(r){return r.json()}).then(function(j){var a=j&&j.responses&&j.responses[0]&&j.responses[0].safeSearchAnnotation;if(!a)throw 'err';return !(lvl(a.adult)>=3||lvl(a.racy)>=3||lvl(a.violence)>=4)})}
+function pcSafe(b64){if(!VISION_KEY)return Promise.resolve(true);return fetch('https://vision.googleapis.com/v1/images:annotate?key='+encodeURIComponent(VISION_KEY),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({requests:[{image:{content:b64},features:[{type:'SAFE_SEARCH_DETECTION'}]}]})}).then(function(r){return r.json()}).then(function(j){var a=j&&j.responses&&j.responses[0]&&j.responses[0].safeSearchAnnotation;if(!a)throw 'err';return !(lvl(a.adult)>=3||lvl(a.racy)>=3||lvl(a.violence)>=4)})}
 function pcStrike(){strikes++;try{localStorage.setItem('gy_strikes',strikes)}catch(e){}if(strikes>=2){banned=true;banPut();render();return}var e=document.getElementById('pce');if(e)e.textContent=WARN()}
 function pcPhoto(inp){var f=inp.files&&inp.files[0];inp.value='';var e=document.getElementById('pce');if(!f)return;
  if(banned){render();return}
  if(!/^image\/(jpeg|png|webp)$/.test(f.type)){if(e)e.textContent=T('सिर्फ़ फ़ोटो (JPG/PNG) भेज सकते हैं।','Only photos (JPG/PNG) can be sent.');return}
- if(!VISION_KEY){if(e)e.textContent=T('फ़ोटो की जाँच अभी चालू नहीं है, इसलिए फ़ोटो नहीं भेज सकते।','Photo checking is not switched on yet, so photos cannot be sent.');return}
- if(e)e.textContent=T('फ़ोटो जाँची जा रही है...','Checking photo...');
+  if(e)e.textContent=T('फ़ोटो जाँची जा रही है...','Checking photo...');
  var im=new Image(),u=URL.createObjectURL(f);
  im.onload=function(){URL.revokeObjectURL(u);var s=Math.min(1,640/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*s));c.height=Math.max(1,Math.round(im.height*s));c.getContext('2d').drawImage(im,0,0,c.width,c.height);
   var d=c.toDataURL('image/jpeg',.6);if(d.length>150000){if(e)e.textContent=T('फ़ोटो बहुत बड़ी है।','Photo is too large.');return}
@@ -1295,7 +1294,11 @@ function frHTML(){var me=frMe();if(!me)return '';
   if(CV==='friends')return frPageFriends();
   if(CV==='add')return frPageAdd();
   var rq=FR.req.length?' <span style="background:#e11d48;color:#fff;border-radius:9px;padding:1px 7px;font-size:12px">'+FR.req.length+'</span>':'';
-  return '<div class="card" style="display:flex;align-items:center;gap:8px"><button class="msg" style="flex:1;margin:0;text-align:left;display:flex;align-items:center;font-weight:800;font-size:16px;color:var(--ink)" onclick="cvGo(\'friends\')"><span>👥 '+T('मेरे दोस्त','My friends')+' ('+FR.fl.length+')</span><span style="margin-left:auto;font-size:20px">›</span></button><button class="btn" style="width:auto;margin:0;padding:12px 16px" onclick="cvGo(\'add\')">➕ '+T('जोड़ें','Add')+rq+'</button></div>'}
+  return '<div class="card" style="display:flex;align-items:center;gap:8px"><button class="msg" style="flex:1;margin:0;text-align:left;display:flex;align-items:center;font-weight:800;font-size:16px;color:var(--ink)" onclick="cvGo(\'friends\')"><span>👥 '+T('मेरे दोस्त','My friends')+' ('+FR.fl.length+')</span><span style="margin-left:auto;font-size:20px">›</span></button><button class="btn" style="width:auto;margin:0;padding:12px 16px" onclick="cvGo(\'add\')">➕ '+T('जोड़ें','Add')+rq+'</button></div>'+pcList()}
+function pcDM(u){var me=frMe(),f=FR.fl.filter(function(x){return x.u===u})[0];if(!me||!f)return;PC.code='D'+[me,u].sort().join('').toUpperCase().replace(/[^A-Z0-9]/g,'');PC.peer=f;PC.list=[];PC.sig='';PC.pres={};PC.seen='';clearInterval(PC.poll);PC.poll=null;cvGo('dm')}
+function pcList(){var h='<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>🔒 '+T('निजी चैट','Private chat')+'</b><button class="lang" onclick="cvGo(\'saved\')">⭐ '+T('सेव','Saved')+'</button></div><p class="muted" style="margin:6px 0">'+T('सिर्फ़ आप और आपका दोस्त यह चैट देख सकते हैं।','Only you and your friend can see this chat.')+'</p>';
+ h+=FR.fl.length?FR.fl.map(function(f){return '<div class="msg" style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="pcDM(\''+f.u+'\')"><span style="font-size:26px">'+f.a+'</span><span style="flex:1;line-height:1.25"><b>'+esc2(f.n)+'</b><br><small class="muted">'+esc2(f.id)+'</small></span><span style="font-size:22px">💬</span></div>'}).join(''):'<p class="muted">'+T('चैट करने के लिए पहले दोस्त जोड़ें (➕ जोड़ें)।','Add a friend first (➕ Add) to start a private chat.')+'</p>';
+ return h+'</div>'}
 function frErr(){return FR.err?'<p class="err">'+T('फ्रेंड सिस्टम अभी सर्वर पर चालू नहीं है (Firebase rules में FID, FR, FL खोलने होंगे)।','Friends are not enabled on the server yet (open FID, FR and FL in the Firebase rules).')+'</p>':''}
 function frDelOne(u){FRE.sel={};FRE.sel[u]=1;frDelAsk()}
 function frPageFriends(){var h=cvHead('👥 '+T('मेरे दोस्त','My friends')+' ('+FR.fl.length+')');
@@ -1342,10 +1345,9 @@ function chat(){
   if(!(window.GYX&&GYX.au&&GYX.au()))return h+accCard(T('चैट के लिए लॉगिन करें।','Log in to use chat.'));
   if(CV==='saved')return pcSavedPage();
   if(CV==='friends'||CV==='add'){setTimeout(frLoad,60);return '<div id="frb">'+frHTML()+'</div>'}
+  if(CV==='dm'){if(!(PC.code&&PC.peer))CV='main';else{if(!PC.poll)PC.poll=setInterval(pcGet,4000);setTimeout(pcGet,50);return cvHead(esc2(PC.peer.a)+' '+esc2(PC.peer.n)+' 🔒')+'<div class="card"><div id="pcm" style="max-height:56vh;overflow-y:auto;margin:8px 0"></div><p class="err" id="pce">'+chatErr+'</p><div id="crp">'+pcRp()+'</div><div id="cbar">'+pcBar()+'</div></div>'}}
   h+='<div id="frb">'+frHTML()+'</div>';setTimeout(frLoad,60);
-   if(!PC.code){PC.code='COMMON';PC.list=[];PC.sig='';setTimeout(pcGet,50)}
-  {if(!PC.poll)PC.poll=setInterval(pcGet,4000);setTimeout(pcGet,50);
-   h+='<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>'+T('सबके लिए एक ही चैट रूम','Common room for everyone')+'</b><button class="lang" onclick="cvGo(\'saved\')">⭐ '+T('सेव','Saved')+'</button></div><div id="pcm" style="max-height:46vh;overflow-y:auto;margin:8px 0"></div><p class="err" id="pce">'+chatErr+'</p><div id="crp">'+pcRp()+'</div><div id="cbar">'+pcBar()+'</div></div>'}
+  clearInterval(PC.poll);PC.poll=null;PC.code='';PC.peer=null;
   Object.keys(blocked).forEach(function(u,i){h+='<p class="muted">'+esc2(blocked[u]===true?u:blocked[u])+' '+T('ब्लॉक है','is blocked')+' <button class="lang" onclick="unb('+i+')">'+T('अनब्लॉक','Unblock')+'</button></p>'});
   return h}
 
@@ -1539,16 +1541,21 @@ function vLoop(){if(!VC.on||!G)return;vf('GET','').then(function(d){d=d||{};var 
 function vStop(){clearInterval(VC.iv);Object.keys(VC.pc).forEach(drop);if(VC.st)VC.st.getTracks().forEach(function(t){t.stop()});VC.st=null;if(VC.on&&G&&me)vf('DELETE','/p/'+me).catch(function(){});VC.on=0;VC.mute=0;vui()}
 var MMT=null,MMK='';
 function mq(m,k,b){return aTok().then(function(t){return fetch(FIREBASE_DB_URL+'/ludo/MM_'+k+'.json'+(t?'?auth='+encodeURIComponent(t):''),{method:m,body:b!==undefined?JSON.stringify(b):undefined}).then(function(r){if(!r.ok)throw 0;return r.json()})})}
-function mmStop(){clearInterval(MMT);MMT=null;var k=MMK,c=G&&G.code;MMK='';if(k&&c)mq('GET',k).then(function(w){if(w&&w.code===c)return mq('DELETE',k)}).catch(function(){})}
-function mmStart(k){mmStop();MMK=k;var put=function(){if(!G||G.mode!=='online'||G.win||me!=='red'||(G.bots&&Object.keys(G.bots).length)||G.pl.length>=(G.cap||4)){mmStop();return}mq('PUT',k,{code:G.code,ts:Date.now()}).catch(function(){})};put();MMT=setInterval(put,3000)}
+function myU(){try{return String(window.frMe())}catch(e){return ''}}
+function mqp(m,k,u,b){return aTok().then(function(t){return fetch(FIREBASE_DB_URL+'/ludo/MMQ_'+k+(u?'/'+u:'')+'.json'+(t?'?auth='+encodeURIComponent(t):''),{method:m,body:b!==undefined?JSON.stringify(b):undefined}).then(function(r){if(!r.ok)throw 0;return r.json()})})}
+function mqCand(k){var u=myU();return mqp('GET',k).then(function(q){var a=[],now=Date.now();if(q&&typeof q==='object'&&!q.error)Object.keys(q).forEach(function(x){var o=q[x];if(x!==u&&o&&o.c&&Math.abs(now-(+o.ts||0))<15000)a.push({k:x,o:o})});if(a.length){a.sort(function(m,n){return m.k<n.k?-1:1});return {code:a[0].o.c,ts:Date.now()}}return mq('GET',k)}).catch(function(){return mq('GET',k)})}
+function mmStop(){clearInterval(MMT);MMT=null;var k=MMK,c=G&&G.code,u=myU();MMK='';if(k&&u)mqp('DELETE',k,u).catch(function(){});if(k&&c)mq('GET',k).then(function(w){if(w&&w.code===c)return mq('DELETE',k)}).catch(function(){})}
+function mmStart(k){mmStop();MMK=k;var put=function(){if(!G||G.mode!=='online'||G.win||me!=='red'||(G.bots&&Object.keys(G.bots).length)||G.pl.length>=(G.cap||4)){mmStop();return}mq('PUT',k,{code:G.code,ts:Date.now()}).catch(function(){});mmQ(k)};put();MMT=setInterval(put,3000)}
+function mmQ(k){var u=myU();if(!u||!G)return;mqp('PUT',k,u,{c:G.code,ts:{'.sv':'timestamp'}}).then(function(){return mqp('GET',k)}).then(function(q){if(!G||G.mode!=='online'||G.win||MMK!==k||!(G.pl.length<=1&&!(G.bots&&Object.keys(G.bots).length)))return;var best=null,now=Date.now();if(q&&typeof q==='object'&&!q.error)Object.keys(q).forEach(function(x){var o=q[x];if(x<u&&o&&o.c&&Math.abs(now-(+o.ts||0))<15000&&(!best||x<best.u))best={u:x,c:o.c}});if(best)mmYield(best.c)}).catch(function(){})}
+function mmYield(code){var n=G.cap||2,fee=G.stk||0,oc=G.code;mmStop();clearInterval(BI);clearInterval(poll);try{vStop()}catch(e){}aTok().then(function(t){return fetch(FIREBASE_DB_URL+'/ludo/'+oc+'.json'+(t?'?auth='+encodeURIComponent(t):''),{method:'DELETE'})}).catch(function(){});G=null;SPEC=0;SP=[];try{window.gyLive&&window.gyLive.clear()}catch(e){}if(fee)window.GYC.give(fee,tt('एंट्री वापस','Entry back'));L.auto(n,code)}
 var L=window.LudoGame={ctx:function(g,m){G=g;me=m},vstop:function(){vStop()},
  start:function(n){G=fresh(n===2?['red','yellow']:COL.slice(),'offline');gameUI()},
- create:function(n,auto){if(needNet())return;n=n===4?4:2;var fee=n===2?20:10;if(!window.GYC.take('ludo',fee))return;pname=(($('ldn')||{value:pname}).value||'Player').trim().slice(0,14)||'Player';var code=Math.random().toString(36).slice(2,6).toUpperCase();G=fresh(['red'],'online');G.cap=n;G.stk=fee;G.code=code;G.names.red=pname;me='red';save();gameUI();startPoll();startBots();setTimeout(botJoin,auto?15000:5000);if(auto){mmStart('L'+n);note(tt('खिलाड़ी ढूँढ रहे हैं…','Finding a player…'))}window.gyLive&&window.gyLive.set(code,'l')},
+ create:function(n,auto){if(needNet())return;n=n===4?4:2;var fee=n===2?20:10;if(!window.GYC.take('ludo',fee))return;pname=(($('ldn')||{value:pname}).value||'Player').trim().slice(0,14)||'Player';var code=Math.random().toString(36).slice(2,6).toUpperCase();G=fresh(['red'],'online');G.cap=n;G.stk=fee;G.code=code;G.names.red=pname;me='red';save();gameUI();startPoll();startBots();setTimeout(botJoin,auto?20000:5000);if(auto){mmStart('L'+n);note(tt('खिलाड़ी ढूँढ रहे हैं…','Finding a player…'))}window.gyLive&&window.gyLive.set(code,'l')},
  join:function(){if(needNet())return;pname=(($('ldn')||{value:pname}).value||'Player').trim().slice(0,14)||'Player';var code=($('ldc').value||'').trim().toUpperCase();if(!code)return;G={code:code};fb('GET').then(function(o){if(!o){note(tt('रूम नहीं मिला','Room not found'));G=null;return}
   var g=fresh(['red'],'online');g.code=code;G=g;apply(o);var cap=G.cap||4,bk=Object.keys(G.bots||{}),free;if(G.pl.length<cap)free=(cap===2&&G.pl.indexOf('yellow')<0)?'yellow':COL.filter(function(c){return G.pl.indexOf(c)<0})[0];else if(bk.length){free=bk[0];delete G.bots[free]}if(!free){note(tt('रूम भरा है','Room is full'));G=null;return}var fee=cap===2?20:10;if(!window.GYC.take('ludo',fee)){G=null;return}G.stk=fee;
   if(G.pl.indexOf(free)<0)G.pl.push(free);G.names[free]=pname;me=free;save();gameUI();startPoll();window.gyLive&&window.gyLive.set(code,'l')}).catch(function(){G=null;note(tt('नेटवर्क एरर','Network error'))})},
- auto:function(n){if(needNet())return;n=n===4?4:2;pname=(($('ldn')||{value:pname}).value||'Player').trim().slice(0,14)||'Player';var mk=function(){L.create(n,1)};
-  mq('GET','L'+n).then(function(w){if(!w||!w.code||Date.now()-(+w.ts||0)>15000){mk();return}
+ auto:function(n,fc){if(needNet())return;n=n===4?4:2;pname=(($('ldn')||{value:pname}).value||'Player').trim().slice(0,14)||'Player';var mk=function(){L.create(n,1)};
+  (fc?Promise.resolve({code:fc,ts:Date.now()}):mqCand('L'+n)).then(function(w){if(!w||!w.code||Date.now()-(+w.ts||0)>15000){mk();return}
    var code=String(w.code).toUpperCase();G={code:code};
    fb('GET').then(function(o){if(!o||!o.pl||o.win||(o.cap||4)!==n||(o.bots&&Object.keys(o.bots).length)||o.pl.length>=(o.cap||4)){G=null;mk();return}
     var g=fresh(['red'],'online');g.code=code;G=g;apply(o);var cap=G.cap||4,free=(cap===2&&G.pl.indexOf('yellow')<0)?'yellow':COL.filter(function(c){return G.pl.indexOf(c)<0})[0];
@@ -1760,7 +1767,7 @@ function draw(){var d=$('jkd');if(!d||!G)return;var g=GE(),st=started(),my=mine(
  G.seats.forEach(function(c,si){s+=avSVG(c,si,st)});
  G.seats.forEach(function(c){G.m[c].forEach(function(r,i){mk.push({c:c,i:i,p:ps(g,c,i),can:JG&&mv.some(function(m){return m.c===c&&m.i===i})})})});
  mk.sort(function(a,b){return(a.can?1:0)-(b.can?1:0)});
- s+=ghosts(g,my);mk.forEach(function(k){s+='<g transform="translate('+k.p[0].toFixed(1)+' '+k.p[1].toFixed(1)+')" onclick="Jack.rp(\''+k.c+'\','+k.i+');Jack.t(\''+k.c+'\','+k.i+')" style="cursor:pointer">'+(k.can?'<circle class="pu" r="37" fill="none" stroke="#ffb02e" stroke-width="5"/>':'')+''+hopO(k)+'<g transform="scale(1.2)"><ellipse cx="3" cy="9" rx="19" ry="9" fill="rgba(0,0,0,.35)"/><circle r="21" fill="url(#jm_'+k.c+')" stroke="'+DK[k.c]+'" stroke-width="2"/><circle r="15" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="3"/><ellipse cx="-7" cy="-9" rx="8" ry="4.6" fill="#fff" opacity=".8" transform="rotate(-28 -7 -9)"/><circle cx="8" cy="9" r="3" fill="#fff" opacity=".35"/></g>'+hopC(k)+'</g>'});
+ s+=ghosts(g,my);mk.forEach(function(k){s+='<g transform="translate('+k.p[0].toFixed(1)+' '+k.p[1].toFixed(1)+')" onclick="Jack.rp(\''+k.c+'\','+k.i+');Jack.t(\''+k.c+'\','+k.i+')" style="cursor:pointer">'+(k.can?'<circle class="pu" r="33" fill="none" stroke="#ffb02e" stroke-width="5"/>':'')+''+hopO(k)+'<g transform="scale(1.04)"><ellipse cx="3" cy="9" rx="19" ry="9" fill="rgba(0,0,0,.35)"/><circle r="21" fill="url(#jm_'+k.c+')" stroke="'+DK[k.c]+'" stroke-width="2"/><circle r="15" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="3"/><ellipse cx="-7" cy="-9" rx="8" ry="4.6" fill="#fff" opacity=".8" transform="rotate(-28 -7 -9)"/><circle cx="8" cy="9" r="3" fill="#fff" opacity=".35"/></g>'+hopC(k)+'</g>'});
  if(!st)s+='<rect x="40" y="868" width="1000" height="108" fill="rgba(45,32,14,.82)"/><text x="540" y="935" font-size="42" font-weight="700" fill="#fff" text-anchor="middle">'+tt('दूसरे खिलाड़ियों का इंतज़ार...','Waiting for other players to enter the game')+'</text>';
  d.innerHTML=s;
  var pl=$('jkpl');if(pl){var pp=G.pile?String(G.pile).split(','):[],ph='';pp.forEach(function(x,ix){var a=x.split(':'),f0=ix===pp.length-1&&G.pn!==PN;if(f0&&GHD&&G.seats[+a[2]]===me)f0=false;ph+=cardS(a[0],+a[1]||0,ix,f0,a[2])});if(G.pn!==PN)GHD=0;if(my&&G.card&&!SPEC){var gk=G.card+'|'+G.ver;ph+=cardS(G.card,-7,pp.length,GHK!==gk,String(G.seats.indexOf(cur())));GHK=gk;GHD=1}else GHK='';pl.innerHTML=ph;PN=G.pn||0}
@@ -1879,7 +1886,7 @@ function css(){return `
 .jib{width:40px;height:40px;border-radius:50%;border:0;background:rgba(0,0,0,.38);color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;padding:0;margin:0;flex:0 0 auto}
 .jpill{background:rgba(0,0,0,.38);border-radius:20px;padding:7px 14px;font-weight:700;font-size:14px}
 #jkb{flex:1 1 auto;min-height:0;position:relative;z-index:1;display:flex;align-items:center;justify-content:center;background:none;margin:0}
-#jkb svg{width:100%;height:100%;overflow:visible;transform:scale(1.22);transform-origin:50% 50%}
+#jkb svg{width:100%;height:100%;overflow:visible;transform:scale(1.1);transform-origin:50% 50%}
 .jban{position:absolute;left:10px;top:50px;transform:translate(0,-10px);opacity:0;pointer-events:none;display:flex;align-items:center;gap:8px;min-width:0;max-width:60%;background:rgba(8,14,14,.93);border:2px solid #b8893a;border-radius:14px;padding:5px 12px 5px 6px;font-weight:800;font-size:13px;z-index:5;transition:opacity .25s,transform .25s;box-shadow:0 6px 16px rgba(0,0,0,.4)}
 .jban.on{opacity:1;transform:translate(0,0)}
 .jls{position:absolute;left:50%;transform:translateX(-50%);top:54px;z-index:2;font-size:12px;background:rgba(0,0,0,.32);padding:3px 12px;border-radius:12px;max-width:80%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.85}
@@ -1958,11 +1965,16 @@ function jkPay(){if(!G||G.mode!=='online'||!G.stk||G.paid||!G.win)return;G.paid=
 window.jackView=function(){return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><b>🃏 Jackaroo</b></div><style>'+css()+'</style><div id="jk"></div>'};
 window.jackAfter=function(){if(G)gameUI();else menu()};
 window.jackExit=function(){mmStop();clearInterval(TI);clearInterval(BI);clearInterval(poll);LudoGame.vstop();LudoGame.ctx(null,null);G=null;busy=0;SPEC=0;SP=[];window.gyLive&&window.gyLive.clear()};
-function nameIn(){pn=((($('jkn')||{}).value||'Player').trim().slice(0,14))||'Player'}
+function nameIn(){if(!$('jkn'))return;pn=((($('jkn')||{}).value||'Player').trim().slice(0,14))||'Player'}
 var MMT=null,MMK='';
 function mq(m,k,b){return X.aTok().then(function(t){return fetch(X.db+'/ludo/MM_'+k+'.json'+(t?'?auth='+encodeURIComponent(t):''),{method:m,body:b!==undefined?JSON.stringify(b):undefined}).then(function(r){if(!r.ok)throw 0;return r.json()})})}
-function mmStop(){clearInterval(MMT);MMT=null;var k=MMK,c=G&&G.code;MMK='';if(k&&c)mq('GET',k).then(function(w){if(w&&w.code===c)return mq('DELETE',k)}).catch(function(){})}
-function mmStart(k){mmStop();MMK=k;var put=function(){if(!G||G.mode!=='online'||G.win||me!==G.seats[0]||started()){mmStop();return}mq('PUT',k,{code:G.code,ts:Date.now()}).catch(function(){})};put();MMT=setInterval(put,3000)}
+function myU(){try{return String(window.frMe())}catch(e){return ''}}
+function mqp(m,k,u,b){return X.aTok().then(function(t){return fetch(X.db+'/ludo/MMQ_'+k+(u?'/'+u:'')+'.json'+(t?'?auth='+encodeURIComponent(t):''),{method:m,body:b!==undefined?JSON.stringify(b):undefined}).then(function(r){if(!r.ok)throw 0;return r.json()})})}
+function mqCand(k){var u=myU();return mqp('GET',k).then(function(q){var a=[],now=Date.now();if(q&&typeof q==='object'&&!q.error)Object.keys(q).forEach(function(x){var o=q[x];if(x!==u&&o&&o.c&&Math.abs(now-(+o.ts||0))<15000)a.push({k:x,o:o})});if(a.length){a.sort(function(m,n){return m.k<n.k?-1:1});return {code:a[0].o.c,ts:Date.now()}}return mq('GET',k)}).catch(function(){return mq('GET',k)})}
+function mmStop(){clearInterval(MMT);MMT=null;var k=MMK,c=G&&G.code,u=myU();MMK='';if(k&&u)mqp('DELETE',k,u).catch(function(){});if(k&&c)mq('GET',k).then(function(w){if(w&&w.code===c)return mq('DELETE',k)}).catch(function(){})}
+function mmStart(k){mmStop();MMK=k;var put=function(){if(!G||G.mode!=='online'||G.win||me!==G.seats[0]||started()){mmStop();return}mq('PUT',k,{code:G.code,ts:Date.now()}).catch(function(){});mmQ(k)};put();MMT=setInterval(put,3000)}
+function mmQ(k){var u=myU();if(!u||!G)return;mqp('PUT',k,u,{c:G.code,ts:{'.sv':'timestamp'}}).then(function(){return mqp('GET',k)}).then(function(q){if(!G||G.mode!=='online'||G.win||MMK!==k||!(Object.keys(G.names).length<=1&&!(G.bots&&Object.keys(G.bots).length)))return;var best=null,now=Date.now();if(q&&typeof q==='object'&&!q.error)Object.keys(q).forEach(function(x){var o=q[x];if(x<u&&o&&o.c&&Math.abs(now-(+o.ts||0))<15000&&(!best||x<best.u))best={u:x,c:o.c}});if(best)mmYield(best.c)}).catch(function(){})}
+function mmYield(code){var n=G.seats.length,fee=G.stk||0,oc=G.code;mmStop();window.jackExit();X.aTok().then(function(t){return fetch(X.db+'/ludo/'+oc+'.json'+(t?'?auth='+encodeURIComponent(t):''),{method:'DELETE'})}).catch(function(){});if(fee)window.GYC.give(fee,tt('एंट्री वापस','Entry back'));Jack.auto(n,code)}
 var BI=null,bdue=0;
 function startBots(){clearInterval(BI);BI=setInterval(botTick,1000)}
 function botFill(){if(!G||G.mode!=='online'||started()||G.win)return;G.bots=G.bots||{};var used=Object.keys(G.names).map(function(c){return G.names[c]});G.seats.forEach(function(c){if(!G.names[c]){var n=X.bn(used);used.push(n);G.names[c]=n;G.bots[c]=1}});save();draw()}
@@ -2010,10 +2022,10 @@ window.Jack={
  watch:function(code){if(needNet())return;if(!X.au()){note(tt('देखने के लिए लॉगिन करें','Log in to watch'));return}code=String(code||'').toUpperCase();G={code:code,chat:[]};SPEC=1;SP=[];spT=0;
   fb('GET').then(function(o){if(!o||!o.seats){note(tt('गेम खत्म हो गया या रूम नहीं मिला','Game ended or room not found'));G=null;SPEC=0;menu();return}G.mode='online';app(o);me=null;gameUI();startPoll()}).catch(function(){G=null;SPEC=0;note(tt('नेटवर्क एरर','Network error'))})},
  start:function(n,bot){clearInterval(BI);bdue=0;fresh(n,'offline');busy=0;if(bot&&n===2){G.vsBot=1;G.bots={blue:1};me='orange';G.fs=1;G.turn=1;startBots()}gameUI()},
- create:function(n,auto){if(needNet())return;nameIn();var fee=n===2?20:10;if(!window.GYC.take('jk',fee))return;fresh(n,'online');G.stk=fee;G.code='J'+Math.random().toString(36).slice(2,6).toUpperCase();me=G.seats[0];G.names[me]=pn;G.st={};G.st[me]=myst();LudoGame.ctx({mode:'online',code:G.code},me);save();gameUI();startPoll();startBots();setTimeout(botFill,auto?15000:5000);if(auto)mmStart('J'+n);window.gyLive&&window.gyLive.set(G.code,'j')},
+ create:function(n,auto){if(needNet())return;nameIn();var fee=n===2?20:10;if(!window.GYC.take('jk',fee))return;fresh(n,'online');G.stk=fee;G.code='J'+Math.random().toString(36).slice(2,6).toUpperCase();me=G.seats[0];G.names[me]=pn;G.st={};G.st[me]=myst();LudoGame.ctx({mode:'online',code:G.code},me);save();gameUI();startPoll();startBots();setTimeout(botFill,auto?20000:5000);if(auto)mmStart('J'+n);window.gyLive&&window.gyLive.set(G.code,'j')},
  join:function(){if(needNet())return;nameIn();var code=($('jkc').value||'').trim().toUpperCase();if(!code)return;G={code:code,chat:[]};fb('GET').then(function(o){if(!o||!o.seats){note(tt('रूम नहीं मिला','Room not found'));G=null;return}G.mode='online';app(o);var f=G.seats.filter(function(c){return!G.names[c]})[0]||G.seats.filter(function(c){return G.bots&&G.bots[c]})[0];if(f&&G.bots)delete G.bots[f];if(!f){note(tt('रूम भरा है','Room is full'));G=null;return}var fee=G.seats.length===2?20:10;if(!window.GYC.take('jk',fee)){G=null;return}G.stk=fee;G.names[f]=pn;G.st=G.st||{};G.st[f]=myst();me=f;LudoGame.ctx({mode:'online',code:code},me);save();gameUI();startPoll();window.gyLive&&window.gyLive.set(code,'j')}).catch(function(){G=null;note(tt('नेटवर्क एरर','Network error'))})},
- auto:function(n){if(needNet())return;nameIn();n=n===4?4:2;var mk=function(){Jack.create(n,1)};
-  mq('GET','J'+n).then(function(w){if(!w||!w.code||Date.now()-(+w.ts||0)>15000){mk();return}
+ auto:function(n,fc){if(needNet())return;if(!fc)nameIn();n=n===4?4:2;var mk=function(){Jack.create(n,1)};
+  (fc?Promise.resolve({code:fc,ts:Date.now()}):mqCand('J'+n)).then(function(w){if(!w||!w.code||Date.now()-(+w.ts||0)>15000){mk();return}
    var code=String(w.code).toUpperCase();G={code:code,chat:[]};
    fb('GET').then(function(o){if(!o||!o.seats||o.seats.length!==n||o.win){G=null;mk();return}
     G.mode='online';app(o);var f=G.seats.filter(function(c){return!G.names[c]})[0];if(!f){G=null;mk();return}
@@ -4712,8 +4724,13 @@ function myName(){var a=window.GYX&&GYX.au&&GYX.au();return(a&&a.name)||ld('gy_q
 function qOpen(){return tab==='v1'}
 function qfb(m,b,p){var X=window.GYX;if(!X||!X.db)return Promise.reject(0);return X.aTok().then(function(t){return fetch(X.db+'/ludo/QZ'+QV.code+(p||'')+'.json'+(t?'?auth='+encodeURIComponent(t):''),{method:m,body:b!==undefined?JSON.stringify(b):undefined}).then(function(r){if(!r.ok)throw 0;return r.json()})})}
 function qq(m,b){var X=window.GYX;if(!X||!X.db)return Promise.reject(0);return X.aTok().then(function(t){return fetch(X.db+'/ludo/QZQUEUE.json'+(t?'?auth='+encodeURIComponent(t):''),{method:m,body:b!==undefined?JSON.stringify(b):undefined}).then(function(r){if(!r.ok)throw 0;return r.json()})})}
+function qUid(){try{return String(window.frMe())}catch(e){return ''}}
+function qq2(m,b){var X=window.GYX,u=qUid();if(!X||!X.db||!u)return Promise.reject(0);return X.aTok().then(function(t){return fetch(X.db+'/ludo/QZQ2/'+u+'.json'+(t?'?auth='+encodeURIComponent(t):''),{method:m,body:b!==undefined?JSON.stringify(b):undefined}).then(function(r){if(!r.ok)throw 0;return r.json()})})}
+function qqAll(){var X=window.GYX;if(!X||!X.db)return Promise.reject(0);return X.aTok().then(function(t){return fetch(X.db+'/ludo/QZQ2.json'+(t?'?auth='+encodeURIComponent(t):'')).then(function(r){if(!r.ok)throw 0;return r.json()})})}
+function qCand(){var u=qUid();return qqAll().then(function(q){var a=[],now=Date.now();if(q&&typeof q==='object'&&!q.error)Object.keys(q).forEach(function(x){var o=q[x];if(x!==u&&o&&o.c&&Math.abs(now-(+o.ts||0))<15000)a.push({k:x,o:o})});if(a.length){a.sort(function(m,n){return m.k<n.k?-1:1});return {code:a[0].o.c,ts:Date.now()}}return qq('GET')}).catch(function(){return qq('GET')})}
+function qTie(){var u=qUid();if(!u||QV.tie)return;qq2('PUT',{c:QV.code,ts:{'.sv':'timestamp'}}).then(function(){return qqAll()}).then(function(q){if(QV.tie||QV.role!=='h'||QV.st!=='lobby'||!QV.auto)return;var best=null,now=Date.now();if(q&&typeof q==='object'&&!q.error)Object.keys(q).forEach(function(x){var o=q[x];if(x<u&&o&&o.c&&Math.abs(now-(+o.ts||0))<15000&&(!best||x<best.u))best={u:x,c:o.c}});if(best){QV.tie=1;var nm0=QV.name;qfb('GET').then(function(r){if(r&&r.g){QV.tie=0;return}qExit();window.gzqAuto(best.c,nm0)})}}).catch(function(){})}
 function qReset(){clearInterval(QV.pl);QV={st:'menu',mode:'bot',cat:QV.cat||'mix',lv:QV.lv||'med'}}
-function qExit(){clearInterval(QV.pl);if(QV.auto&&QV.role==='h'&&QV.st==='lobby')qq('DELETE').catch(function(){});if(QV.mode==='online'&&QV.stk&&!QV.paid&&QV.st==='lobby'){QV.paid=1;GYC.give(QV.stk,T('एंट्री वापस','entry back'))}if(QV.mode==='online'&&QV.role==='h'&&QV.code&&QV.st!=='done')qfb('DELETE').catch(function(){});qReset()}
+function qExit(){clearInterval(QV.pl);if(QV.auto&&QV.role==='h'&&QV.st==='lobby'){qq('DELETE').catch(function(){});qq2('DELETE').catch(function(){})}if(QV.mode==='online'&&QV.stk&&!QV.paid&&QV.st==='lobby'){QV.paid=1;GYC.give(QV.stk,T('एंट्री वापस','entry back'))}if(QV.mode==='online'&&QV.role==='h'&&QV.code&&QV.st!=='done')qfb('DELETE').catch(function(){});qReset()}
 function qBuild(bot){var cat=QV.cat,pool=cat==='mix'?shuffle(QUESTIONS.filter(vsOk)).slice(0,10):fresh(SEL(cat).filter(vsOk),10);
  if(pool.length<5){note(T('इस विषय में अभी कम सवाल हैं','Not enough questions in this subject'));return null}
  var p={easy:.5,med:.72,hard:.9}[QV.lv]||.7;
@@ -4728,24 +4745,24 @@ function finish(){clearInterval(QV.pl);if(QV.mode==='online'){var s=0;String(QV.
  qRender();window.scrollTo(0,0);if(r!=='d')celeb()}
 function qPoll(){clearInterval(QV.pl);QV.pl=setInterval(function(){if(QV.mode!=='online'||QV.st==='done'||QV.st==='menu'){clearInterval(QV.pl);return}
  qfb('GET').then(function(r){if(!r){QV.gone=1;return}var ch=0;
-  if(QV.role==='h'&&QV.st==='lobby'&&r.g){QV.on=String(r.g);QV.st='play';ch=1;if(QV.auto)qq('DELETE').catch(function(){})}else if(QV.role==='h'&&QV.st==='lobby'&&QV.auto)qq('PUT',{code:QV.code,ts:Date.now()}).catch(function(){});
+  if(QV.role==='h'&&QV.st==='lobby'&&r.g){QV.on=String(r.g);QV.st='play';ch=1;if(QV.auto)qq('DELETE').catch(function(){})}else if(QV.role==='h'&&QV.st==='lobby'&&QV.auto){qq('PUT',{code:QV.code,ts:Date.now()}).catch(function(){});qTie()};
   var oa=(QV.role==='h'?r.ag:r.ah)||'';if(oa!==QV.oa){QV.oa=oa;ch=1}
   if(QV.st==='wait'&&oppCount()>=QV.qs.length){finish();return}
   if(ch)qRender()}).catch(function(){})},1500)}
 window.gzqSet=function(k,v){QV[k]=v;qRender()};
 window.gzqMenu=function(){qExit();qRender();window.scrollTo(0,0)};
 window.gzqBot=function(){var qs=qBuild(true);if(!qs)return;var c=QV.cat,l=QV.lv;QV={st:'play',mode:'bot',cat:c,lv:l,qs:qs,i:0,me:0,opp:0,sel:-1,lock:false,on:BN[Math.floor(Math.random()*BN.length)]+' 🤖'};qRender();window.scrollTo(0,0)};
-window.gzqCreate=function(auto){auto=auto===1;if(needNet())return;var nm=((document.getElementById('qzn')||{}).value||'').trim().slice(0,14)||'Player';sv('gy_qzn',nm);var qs=qBuild(false);if(!qs)return;if(!GYC.take('qz',10))return;
+window.gzqCreate=function(auto){auto=auto===1;if(needNet())return;var nm=((document.getElementById('qzn')||{}).value||'').trim().slice(0,14)||QV.name||'Player';sv('gy_qzn',nm);var qs=qBuild(false);if(!qs)return;if(!GYC.take('qz',10))return;
  var code=Math.random().toString(36).slice(2,8).toUpperCase(),c=QV.cat,l=QV.lv;QV={st:'lobby',mode:'online',role:'h',code:code,name:nm,cat:c,lv:l,qs:qs,i:0,me:0,opp:0,sel:-1,lock:false,my:[],oa:'',on:'',stk:10};
- if(auto)QV.auto=1;qfb('PUT',{cat:c,qs:qs,h:nm,g:'',ah:'',ag:'',ts:Date.now()}).then(function(){if(auto)qq('PUT',{code:code,ts:Date.now()}).catch(function(){});qPoll();qRender()}).catch(function(){note(T('ऑनलाइन कनेक्शन नहीं बना','Could not connect online'));QV.st='menu';QV.mode='bot';GYC.give(10,T('एंट्री वापस','entry back'));qRender()});qRender()};
+ if(auto)QV.auto=1;qfb('PUT',{cat:c,qs:qs,h:nm,g:'',ah:'',ag:'',ts:Date.now()}).then(function(){if(auto){qq('PUT',{code:code,ts:Date.now()}).catch(function(){});qq2('PUT',{c:code,ts:{'.sv':'timestamp'}}).catch(function(){})}qPoll();qRender()}).catch(function(){note(T('ऑनलाइन कनेक्शन नहीं बना','Could not connect online'));QV.st='menu';QV.mode='bot';GYC.give(10,T('एंट्री वापस','entry back'));qRender()});qRender()};
 window.gzqJoin=function(){if(needNet())return;var nm=((document.getElementById('qzn')||{}).value||'').trim().slice(0,14)||'Player',code=((document.getElementById('qzc')||{}).value||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');if(!code)return;sv('gy_qzn',nm);
  var c=QV.cat,l=QV.lv;QV={st:'menu',mode:'online',role:'g',code:code,name:nm,cat:c,lv:l,my:[],oa:''};
  qfb('GET').then(function(r){if(!r||!r.qs){note(T('रूम नहीं मिला','Room not found'));QV.mode='bot';qRender();return}
   if(r.g){note(T('रूम भर चुका है','Room is full'));QV.mode='bot';qRender();return}
   if(!GYC.take('qz',10)){QV.mode='bot';qRender();return}QV.stk=10;return qfb('PATCH',{g:nm},'').then(function(){QV.qs=r.qs;QV.i=0;QV.me=0;QV.opp=0;QV.sel=-1;QV.lock=false;QV.on=String(r.h||'');QV.st='play';qPoll();qRender();window.scrollTo(0,0)})}).catch(function(){note(T('ऑनलाइन कनेक्शन नहीं बना','Could not connect online'));QV.mode='bot';qRender()});};
-window.gzqAuto=function(){if(needNet())return;var nm=((document.getElementById('qzn')||{}).value||'').trim().slice(0,14)||'Player';sv('gy_qzn',nm);QV.cat='mix';
+window.gzqAuto=function(fc,fn){var forced=typeof fc==='string'&&fc;if(needNet())return;var nm=(forced&&fn)||((document.getElementById('qzn')||{}).value||'').trim().slice(0,14)||'Player';sv('gy_qzn',nm);QV.cat='mix';
  var mk=function(){QV.name=nm;window.gzqCreate(1)};
- qq('GET').then(function(w){if(!w||!w.code||Date.now()-(+w.ts||0)>20000){mk();return}
+ (forced?Promise.resolve({code:fc,ts:Date.now()}):qCand()).then(function(w){if(!w||!w.code||Date.now()-(+w.ts||0)>20000){mk();return}
   var code=String(w.code),c=QV.cat,l=QV.lv;QV={st:'menu',mode:'online',role:'g',code:code,name:nm,cat:c,lv:l,my:[],oa:''};
   qfb('GET').then(function(r){if(!r||!r.qs||r.g){QV.mode='bot';mk();return}
    if(!GYC.take('qz',10)){QV.mode='bot';qRender();return}QV.stk=10;
