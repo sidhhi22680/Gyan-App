@@ -1219,7 +1219,7 @@ function pcDel(i){var m=PC.list[i];if(!m||m.u!==PU||!m.k)return;if(!confirm(T('�
 /* ---- composer: [+] [message box] [mic / send] ---- */
 function pcBar(){
  if(VC.on)return '<div style="display:flex;gap:8px;align-items:center;margin-top:8px"><button class="btn ghost" style="width:48px;margin:0;padding:8px;font-size:20px" aria-label="Cancel" onclick="vcStop(0)">🗑</button><div style="flex:1;text-align:center;font-weight:800;color:var(--bad)">● <span id="vct">0:00</span> <small class="muted">/ 0:15</small></div><button class="btn" style="width:auto;margin:0;padding:10px 18px" onclick="vcStop(1)">'+T('भेजें','Send')+'</button></div>';
- return '<div style="display:flex;gap:8px;align-items:center;margin-top:8px"><button class="btn ghost" style="width:48px;margin:0;font-size:24px;padding:6px" aria-label="Photo" onclick="document.getElementById(\'cph\').click()">+</button><input type="file" id="cph" accept="image/*" style="display:none" onchange="pcPhoto(this)"><input id="ci" maxlength="200" oninput="pcTog()" placeholder="'+T('संदेश लिखें','Type a message')+'" style="margin:0;flex:1;min-width:0"><button class="btn" id="cact" style="width:auto;margin:0;padding:10px 18px" aria-label="Send / Voice" onclick="pcAct()"><span style="font-size:20px">🎤</span></button></div>'}
+ return '<div style="display:flex;gap:8px;align-items:center;margin-top:8px"><input id="ci" maxlength="200" oninput="pcTog()" placeholder="'+T('संदेश लिखें','Type a message')+'" style="margin:0;flex:1;min-width:0"><button class="btn" id="cact" style="width:auto;margin:0;padding:10px 18px" aria-label="Send / Voice" onclick="pcAct()"><span style="font-size:20px">🎤</span></button></div>'}
 function pcTog(){var i=document.getElementById('ci'),b=document.getElementById('cact');if(!b)return;b.innerHTML=(i&&i.value.trim())?T('भेजें','Send'):'<span style="font-size:20px">🎤</span>'}
 function pcAct(){var i=document.getElementById('ci');if(i&&i.value.trim())pcSend();else vcStart()}
 /* ---- voice message (max 15 sec) ---- */
@@ -1245,7 +1245,7 @@ function vcPost(b){var fr=new FileReader();fr.onload=function(){var d=String(fr.
 var PHOTO_URL='https://asia-south1-gyanapp-4a405.cloudfunctions.net/photoCheck'; /* Cloud Function: photo SafeSearch check (koi API key app mein nahi) */
 function pcSafe(b64){var X=window.GYX;if(!X||!X.aTok)return Promise.reject(0);return X.aTok().then(function(t){if(!t)throw 0;return fetch(PHOTO_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+t},body:JSON.stringify({img:b64})})}).then(function(r){return r.json().then(function(j){if(!r.ok||!j||typeof j.ok!=='boolean')throw 'err';return j.ok})})}
 function pcStrike(){strikes++;try{localStorage.setItem('gy_strikes',strikes)}catch(e){}if(strikes>=2){banned=true;banPut();render();return}var e=document.getElementById('pce');if(e)e.textContent=WARN()}
-function pcPhoto(inp){var f=inp.files&&inp.files[0];inp.value='';var e=document.getElementById('pce');if(!f)return;
+function pcPhoto(inp){return;var f=inp.files&&inp.files[0];inp.value='';var e=document.getElementById('pce');if(!f)return;
  if(banned){render();return}
  if(!/^image\/(jpeg|png|webp)$/.test(f.type)){if(e)e.textContent=T('सिर्फ़ फ़ोटो (JPG/PNG) भेज सकते हैं।','Only photos (JPG/PNG) can be sent.');return}
   if(e)e.textContent=T('फ़ोटो जाँची जा रही है...','Checking photo...');

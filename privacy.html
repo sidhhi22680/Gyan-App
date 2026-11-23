@@ -85,7 +85,7 @@ nav ul { padding-left: 1.2rem; margin: 0.5rem 0px; }
 <tr><td>Device and log data</td><td>IP address and basic connection data, received by our service provider (Google Firebase) when you log in or play online</td><td>Automatic</td><td>Security and keeping the service running</td></tr>
 <tr><td>Online game data</td><td>Room code, game moves, chat messages, and the reports and blocks you make</td><td>Only for online play</td><td>Run multiplayer games, moderation and safety</td></tr><tr><td>Voice</td><td>Short voice messages (up to 15 seconds) that you record after you allow the microphone. They are saved with the chat messages and shown only to the people in that room</td><td>Optional</td><td>Voice messages between players</td></tr>
 <tr><td>Support requests</td><td>Name, phone or email, User ID and your message, sent by email when you use Help</td><td>Optional</td><td>Reply to your problem</td></tr>
-<tr><td>Photos in chat</td><td>A photo you choose to send in a chat room. Before it is sent, the photo is checked automatically for unsafe content using Google Cloud Vision (through our Firebase server); we do not keep the check result. The photo is shown only to the people in that room. You can also report or block a user who sends unsafe content</td><td>Optional</td><td>Share photos with the people you chat with</td></tr>
+
 <tr><td>Advertising data (only once ads are switched on)</td><td>Advertising ID, IP address, device and app-usage information collected by Google AdMob when an ad is shown</td><td>Automatic, only while ads are shown</td><td>Show ads, measure ads, prevent ad fraud</td></tr>
 <tr><td>Data stored on your phone</td><td>Quiz progress, saved questions, streaks, language and login session, kept in the app’s local storage on your device</td><td>Automatic</td><td>Remember your progress and settings</td></tr>
 </tbody>
@@ -118,7 +118,6 @@ nav ul { padding-left: 1.2rem; margin: 0.5rem 0px; }
 <p>Third-party services used in the App:</p>
 <ul>
 <li>Google Firebase (Authentication and Realtime Database) — <a href="https://firebase.google.com/support/privacy">firebase.google.com/support/privacy</a></li>
-<li>Google Cloud Vision (automatic photo safety check; your login token and the photo are sent to our Firebase server, which sends the photo to Google Cloud Vision) — <a href="https://cloud.google.com/terms/data-processing-addendum">cloud.google.com/terms/data-processing-addendum</a></li>
 <li>Google Fonts — <a href="https://policies.google.com/privacy">policies.google.com/privacy</a></li>
 
 <li>Google AdMob (advertising, only once ads are switched on) — <a href="https://policies.google.com/technologies/ads">policies.google.com/technologies/ads</a></li>
@@ -131,7 +130,7 @@ nav ul { padding-left: 1.2rem; margin: 0.5rem 0px; }
 <ul>
 <li>Microphone — only to record voice messages in online games. A voice message is saved with the chat messages and shown to the people in that room.</li>
 <li>Advertising ID (Android) — only once ads are switched on, used by Google AdMob as described in section 3.</li>
-<li>Notifications — optional; the App may ask to show an alert for a new friend request. You can deny it and everything else still works.</li><li>The App does not request camera, location, contacts or storage permissions.</li>
+<li>Notifications — optional; the App may ask to show an alert for a new friend request. You can deny it and everything else still works.</li><li>The App does not request camera, location, contacts.</li>
 </ul>
 
 <h2 id="retention">5. Retention and deletion</h2>
