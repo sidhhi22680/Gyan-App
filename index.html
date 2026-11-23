@@ -1242,9 +1242,8 @@ function vcPost(b){var fr=new FileReader();fr.onload=function(){var d=String(fr.
  var o=pcWhoO({n:pcName(),u:PU,m:'',aud:d,ts:Date.now()});if(PC.reply){o.r=PC.reply;PC.reply=null;pcBarDraw()}PC.stick=1;
  pcFb('POST',o,'PC'+PC.code+'/m').then(function(r){if(r&&r.error)vcErr(T('वॉइस नहीं जा सकी (सर्वर ने रोका)','Voice could not be sent (server refused)'));pcGet()}).catch(function(){vcErr(T('नेटवर्क एरर','Network error'))})};fr.readAsDataURL(b)}
 
-var VISION_KEY=''; /* Google Cloud Vision API key: photo SafeSearch check. Khali ho to photo bhejna band rahega / empty = photo sending stays off */
-function lvl(s){return['UNKNOWN','VERY_UNLIKELY','UNLIKELY','POSSIBLE','LIKELY','VERY_LIKELY'].indexOf(s)}
-function pcSafe(b64){if(!VISION_KEY)return Promise.resolve(true);return fetch('https://vision.googleapis.com/v1/images:annotate?key='+encodeURIComponent(VISION_KEY),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({requests:[{image:{content:b64},features:[{type:'SAFE_SEARCH_DETECTION'}]}]})}).then(function(r){return r.json()}).then(function(j){var a=j&&j.responses&&j.responses[0]&&j.responses[0].safeSearchAnnotation;if(!a)throw 'err';return !(lvl(a.adult)>=3||lvl(a.racy)>=3||lvl(a.violence)>=4)})}
+var PHOTO_URL='https://asia-south1-gyanapp-4a405.cloudfunctions.net/photoCheck'; /* Cloud Function: photo SafeSearch check (koi API key app mein nahi) */
+function pcSafe(b64){var X=window.GYX;if(!X||!X.aTok)return Promise.reject(0);return X.aTok().then(function(t){if(!t)throw 0;return fetch(PHOTO_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+t},body:JSON.stringify({img:b64})})}).then(function(r){return r.json().then(function(j){if(!r.ok||!j||typeof j.ok!=='boolean')throw 'err';return j.ok})})}
 function pcStrike(){strikes++;try{localStorage.setItem('gy_strikes',strikes)}catch(e){}if(strikes>=2){banned=true;banPut();render();return}var e=document.getElementById('pce');if(e)e.textContent=WARN()}
 function pcPhoto(inp){var f=inp.files&&inp.files[0];inp.value='';var e=document.getElementById('pce');if(!f)return;
  if(banned){render();return}
