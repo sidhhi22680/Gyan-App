@@ -1254,7 +1254,7 @@ function frMe(){var a=window.GYX&&GYX.au&&GYX.au();return a&&a.uid?String(a.uid)
 function frCode(){var i=lbId();return i?i.replace('-',''):''}
 function frOk(k){return /^[A-Za-z0-9]{10,40}$/.test(k)}
 function frClean(o){var a=[];if(o&&typeof o==='object'&&!o.error)Object.keys(o).forEach(function(k){var v=o[k];if(!frOk(k)||!v||typeof v!=='object')return;a.push({u:k,n:String(v.n||'Player').slice(0,14),id:String(v.id||'').slice(0,8),a:AVS.indexOf(v.a)>-1?v.a:'🙂',ts:+v.ts||0})});return a}
-function frBadge(){try{moreBdg()}catch(e){}var ix=(tab==='more'||SUBT.indexOf(tab)>=0)?MODULES.filter(function(x){return !!x.sub}).map(function(x){return x.id}).indexOf('chat'):MODULES.filter(function(x){return !x.sub}).map(function(x){return x.id}).indexOf('more'),bt=document.querySelectorAll('#nav button')[ix];if(!bt)return;var o=bt.querySelector('.bdg');if(o)o.remove();var bn=((FR.on&&FR.req.length&&frMe())?FR.req.length:0)+dnCount();if(bn){var i=document.createElement('i');i.className='bdg';i.textContent=bn;bt.appendChild(i)}}
+function frBadge(){try{moreBdg()}catch(e){}var ix=(tab==='more'||SUBT.indexOf(tab)>=0)?MODULES.filter(function(x){return !!x.sub}).map(function(x){return x.id}).indexOf('chat'):MODULES.filter(function(x){return !x.sub}).map(function(x){return x.id}).indexOf('more'),bt=document.querySelectorAll('#nav button')[ix];if(!bt)return;var o=bt.querySelector('.bdg');if(o)o.remove();var bn=((FR.on&&FR.req.length&&frMe())?FR.req.length:0)+(typeof dnCount==='function'?dnCount():0);if(bn){var i=document.createElement('i');i.className='bdg';i.textContent=bn;bt.appendChild(i)}}
 function frShow(){var d=document.getElementById('frb');if(d){var e=document.getElementById('fri'),v=e?e.value:'';d.innerHTML=frHTML();if(v){e=document.getElementById('fri');if(e)e.value=v}}frBadge()}
 function frNotify(n){var m=T('🔔 नई फ्रेंड रिक्वेस्ट: ','🔔 New friend request: ')+n;note(m);try{if(window.Notification&&Notification.permission==='granted'&&document.hidden)new Notification(T('ज्ञान ऐप','Gyan App'),{body:m})}catch(e){}}
 function frFetch(quiet){var me=frMe();if(!me||navigator.onLine===false||FR.busy)return Promise.resolve();FR.busy=1;
@@ -2885,7 +2885,7 @@ var PHOTO_B64='PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImhpIj4KPGhlYWQ+CjxtZXRhIGNoY
 function photoView(){return '<iframe id="photof" allow="camera" title="Photo Studio" style="width:100%;height:calc(100vh - 215px);min-height:520px;border:0;border-radius:12px"></iframe>'}
 function photoAfter(){var f=document.getElementById('photof');if(!f)return;try{var bin=atob(PHOTO_B64),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);f.srcdoc=new TextDecoder('utf-8').decode(u)}catch(e){f.outerHTML='<p class="err">Photo Studio load nahi hua</p>'}}
 var SUBT=['games','v1','photo','chat','profile'];
-function moreBdg(){var mb=document.getElementById('mbdg');if(!mb)return;var n=((window.FR&&FR.on&&FR.req&&FR.req.length&&frMe())?FR.req.length:0)+dnCount();mb.textContent=n||'';mb.style.display=n?'':'none'}
+function moreBdg(){var mb=document.getElementById('mbdg');if(!mb)return;var n=((window.FR&&FR.on&&FR.req&&FR.req.length&&frMe())?FR.req.length:0)+(typeof dnCount==='function'?dnCount():0);mb.textContent=n||'';mb.style.display=n?'':'none'}
 function subBar(){return '';if(SUBT.indexOf(tab)<0)return '';if(tab==='games'&&window.ludoIsOpen&&window.ludoIsOpen())return '';if(tab==='chat'&&typeof CV!=='undefined'&&CV!=='main')return '';
  var m=MODULES.filter(function(x){return x.id===tab})[0];
  return '<div style="display:flex;align-items:center;gap:10px;margin:2px 0 6px"><button class="lang" onclick="go(\'more\')">‹ '+T('और मज़ा','More Fun')+'</button><b>'+m.icon+' '+(lang==='h'?m.t[0]:m.t[1])+'</b></div>'}
@@ -4989,6 +4989,8 @@ function dpSync(){var me=frMe();if(!me||navigator.onLine===false||DPS)return;var
  var im=new Image();im.onload=function(){try{var c=document.createElement('canvas');c.width=c.height=96;c.getContext('2d').drawImage(im,0,0,96,96);var d=c.toDataURL('image/jpeg',.72);
   if(!dpOk(d)){DPS=0;return}pcFb('PUT',d,'PIC/'+me).then(function(r){if(r&&r.error){DPS=0;return}done()}).catch(function(){DPS=0})}catch(e){DPS=0}};im.onerror=function(){DPS=0};im.src=cur}
 setInterval(dpSync,8000);setTimeout(dpSync,3000);
+/* earlier scripts call these, so expose them globally */
+window.dpAv=dpAv;window.dnCount=dnCount;window.DN=DN;
 render();
 })();
 </script>
