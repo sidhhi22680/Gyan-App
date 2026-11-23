@@ -4962,7 +4962,7 @@ function dnPoll(){var me=frMe();if(!me||banned||navigator.onLine===false||DN.bus
    else if(!DN.last[c])DN.last[c]=k}).catch(function(){})})).then(function(){DN.busy=0;
   try{localStorage.setItem('gy_dnlast',JSON.stringify(DN.last))}catch(e){}
   if(DN.dirty){DN.dirty=0;frBadge();if(tab==='chat'&&CV==='main'&&document.getElementById('frb'))frShow()}}).catch(function(){DN.busy=0})}
-setInterval(dnPoll,6000);setTimeout(dnPoll,7000);
+setInterval(dnPoll,20000);setTimeout(dnPoll,7000);
 document.addEventListener('visibilitychange',function(){if(!document.hidden)dnPoll()});
 /* keyboard: hide bottom nav, keep composer visible */
 function kbFit(){var p=document.getElementById('pcm'),v=window.visualViewport;if(!p)return;
