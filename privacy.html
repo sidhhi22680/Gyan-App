@@ -1,37 +1,59 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
+<!DOCTYPE html><html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><style>
+@charset "utf-8";
+
+:root { --bg: #fbfbf9; --fg: #1d2327; --muted: #58636b; --line: #d9ddd8; --accent: #1f5f4a; --mark: #fff1b8; color-scheme: light; box-sizing: border-box; padding-top: env(safe-area-inset-top,0px); padding-bottom: env(safe-area-inset-bottom,0px); }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #15191b; --fg: #e8ebe6; --muted: #a3adb3; --line: #2e3639; --accent: #6fcf9f; --mark: #4a4116; color-scheme: dark; }
+}
+
+:root[data-theme="dark"] { --bg: #15191b; --fg: #e8ebe6; --muted: #a3adb3; --line: #2e3639; --accent: #6fcf9f; --mark: #4a4116; color-scheme: dark; }
+
+html { scroll-padding-top: env(safe-area-inset-top,0px); }
+
+*, ::before, ::after { box-sizing: border-box; }
+
+body { margin: 0px; background: var(--bg); color: var(--fg); font-family: Georgia, "Times New Roman", serif; line-height: 1.7; font-size: 17px; }
+
+main { max-width: 46rem; margin: 0px auto; padding: 2rem 1.25rem 4rem; }
+
+h1 { font-size: 2rem; line-height: 1.2; margin: 0px 0px 0.25rem; }
+
+h2 { font-size: 1.3rem; margin: 2.4rem 0px 0.6rem; padding-top: 1.2rem; border-top: 1px solid var(--line); }
+
+h3 { font-size: 1.05rem; margin: 1.4rem 0px 0.3rem; }
+
+p, li { max-width: 68ch; }
+
+.meta { color: var(--muted); margin: 0px 0px 1.5rem; }
+
+mark { background: var(--mark); color: inherit; padding: 0px 0.2em; border-radius: 3px; }
+
+a { color: var(--accent); }
+
+.box { border-left: 4px solid var(--accent); padding: 0.8rem 1rem; margin: 1.2rem 0px; border-radius: 4px; }
+
+.scroll { overflow-x: auto; }
+
+table { border-collapse: collapse; width: 100%; min-width: 34rem; font-size: 0.95rem; }
+
+th, td { border: 1px solid var(--line); padding: 0.5rem 0.6rem; text-align: left; vertical-align: top; }
+
+th { background: color-mix(in srgb,var(--line) 40%,transparent); }
+
+nav ul { padding-left: 1.2rem; margin: 0.5rem 0px; }
+
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+</style>
+
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Privacy Policy</title>
-<style>
-:root{--bg:#fbfbf9;--fg:#1d2327;--muted:#58636b;--line:#d9ddd8;--accent:#1f5f4a;--mark:#fff1b8;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15191b;--fg:#e8ebe6;--muted:#a3adb3;--line:#2e3639;--accent:#6fcf9f;--mark:#4a4116;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#15191b;--fg:#e8ebe6;--muted:#a3adb3;--line:#2e3639;--accent:#6fcf9f;--mark:#4a4116;color-scheme:dark}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-*,*::before,*::after{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font-family:Georgia,"Times New Roman",serif;line-height:1.7;font-size:17px}
-main{max-width:46rem;margin:0 auto;padding:2rem 1.25rem 4rem}
-h1{font-size:2rem;line-height:1.2;margin:0 0 .25rem}
-h2{font-size:1.3rem;margin:2.4rem 0 .6rem;padding-top:1.2rem;border-top:1px solid var(--line)}
-h3{font-size:1.05rem;margin:1.4rem 0 .3rem}
-p,li{max-width:68ch}
-.meta{color:var(--muted);margin:0 0 1.5rem}
-mark{background:var(--mark);color:inherit;padding:0 .2em;border-radius:3px}
-a{color:var(--accent)}
-.box{border:1px solid var(--line);border-left:4px solid var(--accent);padding:.8rem 1rem;margin:1.2rem 0;border-radius:4px}
-.scroll{overflow-x:auto}
-table{border-collapse:collapse;width:100%;min-width:34rem;font-size:.95rem}
-th,td{border:1px solid var(--line);padding:.5rem .6rem;text-align:left;vertical-align:top}
-th{background:color-mix(in srgb,var(--line) 40%,transparent)}
-nav ul{padding-left:1.2rem;margin:.5rem 0}
-:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-</style>
+
 </head>
 <body>
 <main>
 <h1>Privacy Policy</h1>
-<p class="meta">App: Gyan App · Developer: Dinesh Kumar · Effective date: 16 November 2026 · Last updated: 20 November 2026</p>
+<p class="meta">App: Gyan App · Developer: Dinesh Kumar · Effective date: 16 November 2026 · Last updated: 23 November 2026</p>
 
 <p>Gyan App (“the App”, “we”, “us”) is provided by Dinesh Kumar, Aligarh, Uttar Pradesh, India. This Privacy Policy explains what personal and sensitive user data the App collects, why, how it is used, who it is shared with, how long it is kept, and how you can control or delete it. By using the App you agree to this policy.</p>
 
@@ -61,9 +83,9 @@ nav ul{padding-left:1.2rem;margin:.5rem 0}
 <tr><td>Content you provide</td><td>Display name, room codes and chat messages you type</td><td>Optional</td><td>Provide the app features you request</td></tr>
 <tr><td>Leaderboard data</td><td>Display name, chosen avatar, quiz/game score and time of last update, linked to your User ID</td><td>Only if you are logged in and play</td><td>Show the leaderboard</td></tr>
 <tr><td>Device and log data</td><td>IP address and basic connection data, received by our service provider (Google Firebase) when you log in or play online</td><td>Automatic</td><td>Security and keeping the service running</td></tr>
-<tr><td>Online game data</td><td>Room code, game moves, chat messages, and the reports and blocks you make</td><td>Only for online play</td><td>Run multiplayer games, moderation and safety</td></tr><tr><td>Voice</td><td>Live audio during online voice chat, only after you allow the microphone. It is not recorded</td><td>Optional</td><td>Voice chat between players</td></tr>
+<tr><td>Online game data</td><td>Room code, game moves, chat messages, and the reports and blocks you make</td><td>Only for online play</td><td>Run multiplayer games, moderation and safety</td></tr><tr><td>Voice</td><td>Short voice messages (up to 15 seconds) that you record after you allow the microphone. They are saved with the chat messages and shown only to the people in that room</td><td>Optional</td><td>Voice messages between players</td></tr>
 <tr><td>Support requests</td><td>Name, phone or email, User ID and your message, sent by email when you use Help</td><td>Optional</td><td>Reply to your problem</td></tr>
-<tr><td>Photos in chat</td><td>A photo you choose to send in a private chat room. It is shown only to the people in that room. Photos are not scanned automatically; you can report or block a user who sends unsafe content</td><td>Optional</td><td>Share photos with the people you chat with</td></tr>
+<tr><td>Photos in chat</td><td>A photo you choose to send in a chat room. Before it is sent, the photo is checked automatically for unsafe content using Google Cloud Vision (through our Firebase server); we do not keep the check result. The photo is shown only to the people in that room. You can also report or block a user who sends unsafe content</td><td>Optional</td><td>Share photos with the people you chat with</td></tr>
 <tr><td>Advertising data (only once ads are switched on)</td><td>Advertising ID, IP address, device and app-usage information collected by Google AdMob when an ad is shown</td><td>Automatic, only while ads are shown</td><td>Show ads, measure ads, prevent ad fraud</td></tr>
 <tr><td>Data stored on your phone</td><td>Quiz progress, saved questions, streaks, language and login session, kept in the app’s local storage on your device</td><td>Automatic</td><td>Remember your progress and settings</td></tr>
 </tbody>
@@ -96,6 +118,7 @@ nav ul{padding-left:1.2rem;margin:.5rem 0}
 <p>Third-party services used in the App:</p>
 <ul>
 <li>Google Firebase (Authentication and Realtime Database) — <a href="https://firebase.google.com/support/privacy">firebase.google.com/support/privacy</a></li>
+<li>Google Cloud Vision (automatic photo safety check; your login token and the photo are sent to our Firebase server, which sends the photo to Google Cloud Vision) — <a href="https://cloud.google.com/terms/data-processing-addendum">cloud.google.com/terms/data-processing-addendum</a></li>
 <li>Google Fonts — <a href="https://policies.google.com/privacy">policies.google.com/privacy</a></li>
 
 <li>Google AdMob (advertising, only once ads are switched on) — <a href="https://policies.google.com/technologies/ads">policies.google.com/technologies/ads</a></li>
@@ -106,17 +129,18 @@ nav ul{padding-left:1.2rem;margin:.5rem 0}
 <h2 id="perms">4. App permissions</h2>
 <p>The App requests a permission only when the related feature is used, and you can deny or revoke it in your device settings. Some features may stop working without it.</p>
 <ul>
-<li>Microphone — only for voice chat in online games. Voice is sent live between players and is not recorded by us.</li>
+<li>Microphone — only to record voice messages in online games. A voice message is saved with the chat messages and shown to the people in that room.</li>
 <li>Advertising ID (Android) — only once ads are switched on, used by Google AdMob as described in section 3.</li>
 <li>Notifications — optional; the App may ask to show an alert for a new friend request. You can deny it and everything else still works.</li><li>The App does not request camera, location, contacts or storage permissions.</li>
 </ul>
 
 <h2 id="retention">5. Retention and deletion</h2>
 <p>We keep your data only as long as your account is active or as needed to provide the App, meet legal duties, resolve disputes, and enforce agreements. When it is no longer needed, we delete or anonymize it.</p>
+<p>Chat messages, photos and voice messages stop being shown in a room after 48 hours; copies may stay in our database until they are deleted as described below.</p>
 <h3>How to delete your account and data</h3>
 <ul>
 <li><strong>In the App:</strong> open the ⋮ menu → Help &amp; Support → Delete account, enter your password, tick the confirmation box and tap “Permanently delete my account”. This deletes your login account and your leaderboard entry. Messages you posted in chat or game rooms are not removed by this button; to have them deleted too, email us (see below).</li>
-<li><strong>By web request:</strong> visit <a href="delete-account.html">delete-account.html</a> or email shreesitaram9988@gmail.com with the subject “Delete my account”.</li>
+<li><strong>By web request:</strong> visit <a href="https://sidhhi22680.github.io/Gyan-App/delete-account.html">delete-account.html</a> or email shreesitaram9988@gmail.com with the subject “Delete my account”.</li>
 </ul>
 <p>We delete the account data, and the room messages you ask us to remove, within 30 days of a verified request. We may keep a minimal record of a ban or abuse report to protect other players. Some records may be kept longer where law requires, and backups are overwritten on a regular cycle.</p>
 
@@ -149,5 +173,6 @@ nav ul{padding-left:1.2rem;margin:.5rem 0}
 Email: shreesitaram9988@gmail.com<br>
 Address: Aligarh, Uttar Pradesh, India</p>
 </main>
-</body>
-</html>
+
+
+</body></html>
